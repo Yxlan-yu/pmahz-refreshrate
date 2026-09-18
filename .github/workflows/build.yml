@@ -31,12 +31,15 @@ jobs:
         run: |
           yes | sdkmanager --licenses >/dev/null 2>&1 || true
 
-      - name: Generate debug keystore
+      - name: Restore stable debug keystore
+        env:
+          KEY_B64: ${{ secrets.DEBUG_KEYSTORE_B64 }}
         run: |
-          keytool -genkeypair -v -keystore app/debug.keystore \
-            -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass android -keypass android \
-            -dname "CN=Android Debug,O=Android,C=US"
+          if [ -z "$KEY_B64" ]; then
+            echo "::error ::DEBUG_KEYSTORE_B64 secret missing"
+            exit 1
+          fi
+          echo "$KEY_B64" | base64 -d > app/debug.keystore
 
       - name: Build debug APK
         run: gradle assembleDebug --stacktrace

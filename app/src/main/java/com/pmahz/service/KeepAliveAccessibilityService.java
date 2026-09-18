@@ -17,10 +17,12 @@ import java.util.List;
 public class KeepAliveAccessibilityService extends AccessibilityService {
     private static final String TAG = "KeepAliveA11y";
     private static final int CUSTOM_NOTIF_ID = 1002;
+    private static final long FG_DEBOUNCE_MS = 300;
     private String currentFgPackage = "";
     private volatile String pendingFgPackage = "";
     private volatile String lastAppliedConfig = "";  // "effectivePkg@res@hz"
-    private volatile String lastRealPkg = "";     
+    private volatile String lastRealPkg = "";
+    private volatile String stickyPkg = "";     
     private android.os.Handler fgHandler;
     private Runnable pendingApplyRunnable;
     private SharedPreferences servicePrefs;
@@ -52,7 +54,7 @@ public class KeepAliveAccessibilityService extends AccessibilityService {
                 type != AccessibilityEvent.TYPE_WINDOWS_CHANGED) return;
         String pkg = getTopForegroundPackage(event);
         if (pkg == null || pkg.isEmpty()) return;
-        if (isSystemUiOrSelf(pkg)) return;
+        if (isSystemUiOrSelf(pkg)) { return; }
         scheduleForegroundApply(pkg);
     }
     private String getTopForegroundPackage(AccessibilityEvent event) {
@@ -81,13 +83,36 @@ public class KeepAliveAccessibilityService extends AccessibilityService {
         if (pkg.equals("com.android.systemui")) return true;
         return false;
     }
+    private boolean isRealApp(String pkg) {
+        if (pkg == null || pkg.isEmpty()) return false;
+        if (isSystemUiOrSelf(pkg)) return false;
+        if (pkg.equals(getLauncherPackage())) return true;
+        try {
+            return getPackageManager().getLaunchIntentForPackage(pkg) != null;
+        } catch (Exception e) { return false; }
+    }
     private void scheduleForegroundApply(String pkg) {
         pendingFgPackage = pkg;
-        final String finalPkg = pkg;
-        new Thread(() -> {
-            if (!finalPkg.equals(pendingFgPackage)) return;
-            if (applyForPackage(finalPkg)) updatePersistentNotification(finalPkg);
-        }).start();
+        if (pendingApplyRunnable == null) {
+            pendingApplyRunnable = new Runnable() {
+                @Override public void run() {
+                    String target = pendingFgPackage;
+                    if (target == null || target.isEmpty()) return;
+                    if (!isRealApp(target)) return;
+                    Log.d(TAG, "防抖确认前台: " + target);
+                    if (applyForPackage(target)) updatePersistentNotification(target);
+                }
+            };
+        }
+        if (fgHandler != null) {
+            fgHandler.removeCallbacks(pendingApplyRunnable);
+            fgHandler.postDelayed(pendingApplyRunnable, FG_DEBOUNCE_MS);
+        } else {
+            new Thread(() -> {
+                try { Thread.sleep(FG_DEBOUNCE_MS); } catch (InterruptedException e) { return; }
+                pendingApplyRunnable.run();
+            }).start();
+        }
     }
     @Override
     public void onInterrupt() {
@@ -107,14 +132,20 @@ public class KeepAliveAccessibilityService extends AccessibilityService {
         if (basePkg == null || basePkg.isEmpty()) return false;
         if (isSystemUiOrSelf(basePkg)) return false;
         SharedPreferences prefs = getSharedPreferences("s", MODE_PRIVATE);
-        if (!prefs.getBoolean("custom_app_refresh", false)) { AutoOverclockManager.clearCustomOverride(); return false; }
+        if (!prefs.getBoolean("custom_app_refresh", false)) {
+            AutoOverclockManager.clearCustomOverride();
+            return false;
+        }
         String authMode = prefs.getString("auth_mode", "");
         if (authMode == null || authMode.isEmpty()) return false;
         String effectivePkg = resolveEffectivePkg(prefs, basePkg);
         boolean enabled = prefs.getBoolean("app_refresh_enabled_" + effectivePkg, false);
         if (!enabled) {
+            if (!isRealApp(basePkg)) return false;
+            Log.d(TAG, "前台真实应用未配置自定义，交还自动守护: " + basePkg);
             AutoOverclockManager.clearCustomOverride();
             lastAppliedConfig = "";
+            stickyPkg = "";
             return false;
         }
         String res = prefs.getString("app_refresh_res_" + effectivePkg, "");
@@ -124,6 +155,7 @@ public class KeepAliveAccessibilityService extends AccessibilityService {
         if (configKey.equals(lastAppliedConfig)) return false;
         currentFgPackage = basePkg;
         lastAppliedConfig = configKey;
+        stickyPkg = effectivePkg;
         Log.d(TAG, "自定义刷新率切换: " + effectivePkg + " → " + res + " @ " + hz + "Hz");
         AutoOverclockManager.setCustomOverride(res, hz);
         applyDisplayTarget(authMode, res, hz);
