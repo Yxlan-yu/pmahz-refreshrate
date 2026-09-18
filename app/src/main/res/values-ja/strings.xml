@@ -152,7 +152,7 @@
     <string name="enabled_app_list_title">有効リスト</string>
     <string name="enabled_list_empty">有効なアプリがありません</string>
     <string name="app_management_title">アプリ管理</string>
-    <string name="custom_app_refresh_desc">アプリ管理内のアプリ別リフレッシュレートに使用します。対象アプリを開くと、そのアプリに設定した解像度とリフレッシュレートへ自動で切り替えます。</string>
+    <string name="custom_app_refresh_desc">アプリ管理内のアプリ別リフレッシュレートに使用します。対象アプリを開くと、そのアプリに設定した解像度とリフレッシュレートへ自動で切り替えます。自動オーバークロックと同時に有効にできます。個別設定のないアプリはグローバルのオーバークロック目標を維持します。</string>
     <string name="auto_overclock_desc">全体のカスタムリフレッシュレートと解像度を選択するために使用します。システムやアプリが強制的に下げた場合、元の設定に戻します。</string>
     <string name="app_refresh_config_title">アプリ設定</string>
     <string name="enable_single_app_refresh">個別アプリのリフレッシュレートを有効化</string>

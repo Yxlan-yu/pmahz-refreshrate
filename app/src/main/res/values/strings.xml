@@ -152,7 +152,7 @@
     <string name="enabled_app_list_title">启用名单</string>
     <string name="enabled_list_empty">暂无已启用的应用</string>
     <string name="app_management_title">应用管理</string>
-    <string name="custom_app_refresh_desc">用于应用管理里面的自定义应用刷新率。打开目标应用时，软件会自动切到你在应用管理里给该应用选择的分辨率和刷新率。</string>
+    <string name="custom_app_refresh_desc">用于应用管理里面的自定义应用刷新率。打开目标应用时，软件会自动切到你在应用管理里给该应用选择的分辨率和刷新率。可与屏幕刷新率自动超频同时开启，未单独配置的应用将保持全局超频目标。</string>
     <string name="auto_overclock_desc">用于全局选择自定义刷新率与分辨率。当系统或应用强制降低分辨率或刷新率时，软件将帮你拉回原本设定的刷新率与分辨率。</string>
     <string name="app_refresh_config_title">应用配置</string>
     <string name="enable_single_app_refresh">启用单独应用刷新率</string>

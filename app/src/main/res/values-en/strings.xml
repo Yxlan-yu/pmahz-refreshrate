@@ -152,7 +152,7 @@
     <string name="enabled_app_list_title">Enabled List</string>
     <string name="enabled_list_empty">No apps enabled yet</string>
     <string name="app_management_title">App management</string>
-    <string name="custom_app_refresh_desc">Used for custom refresh rate in App management. When you open a target app, this app switches to the resolution and refresh rate you selected for that app.</string>
+    <string name="custom_app_refresh_desc">Used for custom refresh rate in App management. When you open a target app, this app switches to the resolution and refresh rate you selected for that app. It can be enabled together with auto overclock; apps without a custom config keep the global overclock target.</string>
     <string name="auto_overclock_desc">Used to choose a global custom refresh rate and resolution. When the system or an app forces them lower, this app pulls them back to your original settings.</string>
     <string name="app_refresh_config_title">App config</string>
     <string name="enable_single_app_refresh">Enable per-app refresh rate</string>

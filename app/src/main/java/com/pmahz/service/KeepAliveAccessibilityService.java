@@ -42,6 +42,8 @@ public class KeepAliveAccessibilityService extends AccessibilityService {
                 if (lastRealPkg != null && !lastRealPkg.isEmpty()) updatePersistentNotification(lastRealPkg);
                 else postWaitingNotification();
             } else {
+                AutoOverclockManager.clearCustomOverride();
+                lastAppliedConfig = "";
                 cancelCustomNotification();
             }
         };
@@ -99,18 +101,24 @@ public class KeepAliveAccessibilityService extends AccessibilityService {
         super.onDestroy();
         Log.d(TAG, "无障碍服务销毁");
         try { if (servicePrefs != null && prefListener != null) servicePrefs.unregisterOnSharedPreferenceChangeListener(prefListener); } catch (Exception ignored) {}
+        AutoOverclockManager.clearCustomOverride();
+        lastAppliedConfig = "";
         checkAndRestartService();
     }
     private synchronized void applyForPackage(String basePkg) {
         if (basePkg == null || basePkg.isEmpty()) return;
         if (basePkg.equals("android") || basePkg.equals(getPackageName())) return;
         SharedPreferences prefs = getSharedPreferences("s", MODE_PRIVATE);
-        if (!prefs.getBoolean("custom_app_refresh", false)) return;
+        if (!prefs.getBoolean("custom_app_refresh", false)) { AutoOverclockManager.clearCustomOverride(); return; }
         String authMode = prefs.getString("auth_mode", "");
         if (authMode == null || authMode.isEmpty()) return;
         String effectivePkg = resolveEffectivePkg(prefs, basePkg);
         boolean enabled = prefs.getBoolean("app_refresh_enabled_" + effectivePkg, false);
-        if (!enabled) return;
+        if (!enabled) {
+            AutoOverclockManager.clearCustomOverride();
+            lastAppliedConfig = "";
+            return;
+        }
         String res = prefs.getString("app_refresh_res_" + effectivePkg, "");
         int hz = prefs.getInt("app_refresh_hz_" + effectivePkg, -1);
         if (res == null || res.isEmpty() || hz <= 0) return;
@@ -119,6 +127,7 @@ public class KeepAliveAccessibilityService extends AccessibilityService {
         currentFgPackage = basePkg;
         lastAppliedConfig = configKey;
         Log.d(TAG, "自定义刷新率切换: " + effectivePkg + " → " + res + " @ " + hz + "Hz");
+        AutoOverclockManager.setCustomOverride(res, hz);
         applyDisplayTarget(authMode, res, hz);
     }
     private void updatePersistentNotification(String basePkg) {

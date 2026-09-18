@@ -152,7 +152,7 @@
     <string name="enabled_app_list_title">啟用名單</string>
     <string name="enabled_list_empty">目前尚無已啟用的應用程式</string>
     <string name="app_management_title">應用管理</string>
-    <string name="custom_app_refresh_desc">用於應用管理裡面的自訂應用更新率。打開目標應用時，軟體會自動切到你在應用管理裡為該應用選擇的解析度和更新率。</string>
+    <string name="custom_app_refresh_desc">用於應用管理裡面的自訂應用更新率。打開目標應用時，軟體會自動切到你在應用管理裡為該應用選擇的解析度和更新率。可與螢幕更新率自動超頻同時開啟，未單獨設定的應用將維持全域超頻目標。</string>
     <string name="auto_overclock_desc">用於全域選擇自訂更新率與解析度。當系統或應用強制降低解析度或更新率時，軟體將幫你拉回原本設定的更新率與解析度。</string>
     <string name="app_refresh_config_title">應用設定</string>
     <string name="enable_single_app_refresh">啟用單獨應用更新率</string>

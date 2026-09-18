@@ -147,7 +147,7 @@ public class CustomAppRefreshFragment extends Fragment implements SharedPreferen
         mute[0] = true;
         boolean ocOn = prefs.getBoolean("auto_overclock", false) && AutoOverclockManager.isRunning();
         switchOC.setChecked(ocOn);
-        switchCustom.setChecked(prefs.getBoolean("custom_app_refresh", false) && !ocOn);
+        switchCustom.setChecked(prefs.getBoolean("custom_app_refresh", false));
         showOcTargetContainer(ocOn);
         if (ocOn) {
             tvOCStatus.setText(R.string.guard_enabled);
@@ -159,18 +159,7 @@ public class CustomAppRefreshFragment extends Fragment implements SharedPreferen
             if (mute[0]) return;
             if (checked) {
                 if (!ensureBasePermission(switchCustom)) return;
-                mute[0] = true;
-                switchOC.setChecked(false);
-                mute[0] = false;
-                prefs.edit()
-                        .putBoolean("custom_app_refresh", true)
-                        .putBoolean("auto_overclock", false)
-                        .apply();
-                AutoOverclockManager.stopService(requireContext());
-                stopOverclockStatusUpdater();
-                tvOCStatus.setText(R.string.guard_disabled);
-                tvOCStatus.setTextColor(0xFFE74C3C);
-                showOcTargetContainer(false);
+                prefs.edit().putBoolean("custom_app_refresh", true).apply();
             } else {
                 prefs.edit().putBoolean("custom_app_refresh", false).apply();
             }
@@ -208,13 +197,7 @@ public class CustomAppRefreshFragment extends Fragment implements SharedPreferen
                     return;
                 }
                 prefs.edit().putString("oc_target_res", ocRes).putInt("oc_target_hz", ocHz).apply();
-                mute[0] = true;
-                switchCustom.setChecked(false);
-                mute[0] = false;
-                prefs.edit()
-                        .putBoolean("custom_app_refresh", false)
-                        .putBoolean("auto_overclock", true)
-                        .apply();
+                prefs.edit().putBoolean("auto_overclock", true).apply();
                 String[] wh = ocRes.split("x");
                 try {
                     int tw = Integer.parseInt(wh[0]), th = Integer.parseInt(wh[1]);

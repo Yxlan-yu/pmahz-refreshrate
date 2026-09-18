@@ -21,6 +21,8 @@ public class AutoOverclockManager {
     private static volatile int    targetH   = 0;
     private static volatile int    targetHz  = 0;
     private static volatile String authMode  = "";
+    private static volatile String customOverrideRes = "";
+    private static volatile int    customOverrideHz  = -1;
     private static Context appContext;
     private static Context getLocalizedContext() {
         if (appContext == null) return null;
@@ -62,6 +64,25 @@ public class AutoOverclockManager {
         if (appContext != null) lastLog = getLocalizedContext().getString(R.string.guard_target_updated, tw + "×" + th, hz);
         Log.d(TAG, lastLog);
     }
+    public static void setCustomOverride(String res, int hz) {
+        if (res == null || res.isEmpty() || hz <= 0) {
+            clearCustomOverride();
+            return;
+        }
+        customOverrideRes = res;
+        customOverrideHz  = hz;
+        if (appContext != null) {
+            lastLog = getLocalizedContext().getString(R.string.guard_target_updated, res.replace("x", "×"), hz);
+            Log.d(TAG, lastLog);
+            if (running) OverclockService.updateNotification(appContext);
+        }
+    }
+    public static void clearCustomOverride() {
+        if (customOverrideRes.isEmpty() && customOverrideHz == -1) return;
+        customOverrideRes = "";
+        customOverrideHz  = -1;
+        if (appContext != null && running) OverclockService.updateNotification(appContext);
+    }
     public static void start(Context ctx, String mode,
                              int tw, int th, int hz) {
         if (running) return;appContext = ctx.getApplicationContext();
@@ -77,6 +98,18 @@ public class AutoOverclockManager {
                     int curTargetW  = targetW;
                     int curTargetH  = targetH;
                     int curTargetHz = targetHz;
+                    String ovrRes = customOverrideRes;
+                    int ovrHz = customOverrideHz;
+                    if (ovrRes != null && !ovrRes.isEmpty() && ovrHz > 0) {
+                        String[] ovrWh = ovrRes.split("x");
+                        if (ovrWh.length == 2) {
+                            try {
+                                curTargetW = Integer.parseInt(ovrWh[0].trim());
+                                curTargetH = Integer.parseInt(ovrWh[1].trim());
+                                curTargetHz = ovrHz;
+                            } catch (Exception ignored) {}
+                        }
+                    }
                     List<DisplayMode> all = getSupportedModes(ctx);
                     List<DisplayMode> filtered = new ArrayList<>();
                     for (DisplayMode m : all) {
