@@ -60,18 +60,23 @@ public class KeepAliveAccessibilityService extends AccessibilityService {
     private String getTopForegroundPackage(AccessibilityEvent event) {
         try {
             java.util.List<android.view.accessibility.AccessibilityWindowInfo> windows = getWindows();
-            if (windows != null) {
+            if (windows != null && !windows.isEmpty()) {
+                android.util.DisplayMetrics dm = getResources().getDisplayMetrics();
+                float wpx = dm.widthPixels;
+                float hpx = dm.heightPixels;
                 for (android.view.accessibility.AccessibilityWindowInfo w : windows) {
-                    if (w != null && w.isFocused() &&
-                            w.getType() == android.view.accessibility.AccessibilityWindowInfo.TYPE_APPLICATION) {
-                        android.view.accessibility.AccessibilityNodeInfo root = w.getRoot();
-                        if (root != null) {
-                            CharSequence p = root.getPackageName();
-                            root.recycle();
-                            if (p != null && p.length() > 0) return p.toString();
-                        }
+                    if (w == null || w.getType() != android.view.accessibility.AccessibilityWindowInfo.TYPE_APPLICATION) continue;
+                    android.graphics.Rect b = new android.graphics.Rect();
+                    w.getBoundsInScreen(b);
+                    if (b.width() < wpx * 0.90f || b.height() < hpx * 0.90f) continue;
+                    android.view.accessibility.AccessibilityNodeInfo root = w.getRoot();
+                    if (root != null) {
+                        CharSequence p = root.getPackageName();
+                        root.recycle();
+                        if (p != null && p.length() > 0) return p.toString();
                     }
                 }
+                return "";
             }
         } catch (Exception ignored) {}
         CharSequence p = event.getPackageName();
