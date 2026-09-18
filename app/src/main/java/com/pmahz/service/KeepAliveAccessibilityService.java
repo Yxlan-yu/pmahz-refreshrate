@@ -98,6 +98,7 @@ public class KeepAliveAccessibilityService extends AccessibilityService {
     }
     private void scheduleForegroundApply(String pkg) {
         pendingFgPackage = pkg;
+        Log.d(TAG, "收到前台窗口事件: " + pkg);
         if (pendingApplyRunnable == null) {
             pendingApplyRunnable = new Runnable() {
                 @Override public void run() {
@@ -133,6 +134,30 @@ public class KeepAliveAccessibilityService extends AccessibilityService {
         lastAppliedConfig = "";
         checkAndRestartService();
     }
+    private boolean hasFullscreenWindowOf(String pkg) {
+        if (pkg == null || pkg.isEmpty()) return false;
+        try {
+            java.util.List<android.view.accessibility.AccessibilityWindowInfo> windows = getWindows();
+            if (windows != null && !windows.isEmpty()) {
+                android.util.DisplayMetrics dm = getResources().getDisplayMetrics();
+                float wpx = dm.widthPixels;
+                float hpx = dm.heightPixels;
+                for (android.view.accessibility.AccessibilityWindowInfo w : windows) {
+                    if (w == null || w.getType() != android.view.accessibility.AccessibilityWindowInfo.TYPE_APPLICATION) continue;
+                    android.graphics.Rect b = new android.graphics.Rect();
+                    w.getBoundsInScreen(b);
+                    if (b.width() < wpx * 0.90f || b.height() < hpx * 0.90f) continue;
+                    android.view.accessibility.AccessibilityNodeInfo root = w.getRoot();
+                    if (root != null) {
+                        String wp = root.getPackageName() != null ? root.getPackageName().toString() : "";
+                        root.recycle();
+                        if (wp.equals(pkg)) return true;
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        return false;
+    }
     private synchronized boolean applyForPackage(String basePkg) {
         if (basePkg == null || basePkg.isEmpty()) return false;
         if (isSystemUiOrSelf(basePkg)) return false;
@@ -147,6 +172,10 @@ public class KeepAliveAccessibilityService extends AccessibilityService {
         boolean enabled = prefs.getBoolean("app_refresh_enabled_" + effectivePkg, false);
         if (!enabled) {
             if (!isRealApp(basePkg)) return false;
+            if (!stickyPkg.isEmpty() && hasFullscreenWindowOf(stickyPkg)) {
+                Log.d(TAG, "浮层/小窗事件，主应用仍在前台，保持: " + stickyPkg);
+                return false;
+            }
             Log.d(TAG, "前台真实应用未配置自定义，交还自动守护: " + basePkg);
             AutoOverclockManager.clearCustomOverride();
             lastAppliedConfig = "";
