@@ -1,16 +1,13 @@
 package com.pmahz.service;
 import android.accessibilityservice.AccessibilityService;
-import android.app.Notification;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
-import androidx.core.app.NotificationCompat;
+import android.widget.Toast;
 import com.pmahz.R;
 import com.pmahz.model.DisplayMode;
 import com.pmahz.util.AutoOverclockManager;
@@ -19,7 +16,6 @@ import com.pmahz.util.ShizukuUtils;
 import java.util.List;
 public class KeepAliveAccessibilityService extends AccessibilityService {
     private static final String TAG = "KeepAliveA11y";
-    private static final String CUSTOM_CHANNEL_ID = "custom_app_channel";
     private static final int CUSTOM_NOTIF_ID = 1002;
     private String currentFgPackage = "";
     private volatile String pendingFgPackage = "";
@@ -34,13 +30,11 @@ public class KeepAliveAccessibilityService extends AccessibilityService {
         super.onServiceConnected();
         fgHandler = new android.os.Handler(android.os.Looper.getMainLooper());
         Log.d(TAG, "无障碍服务已连接");
-        createCustomChannel();
         servicePrefs = getSharedPreferences("s", MODE_PRIVATE);
         prefListener = (sp, key) -> {
             if (!"custom_app_refresh".equals(key)) return;
             if (sp.getBoolean("custom_app_refresh", false)) {
                 if (lastRealPkg != null && !lastRealPkg.isEmpty()) updatePersistentNotification(lastRealPkg);
-                else postWaitingNotification();
             } else {
                 AutoOverclockManager.clearCustomOverride();
                 lastAppliedConfig = "";
@@ -48,7 +42,6 @@ public class KeepAliveAccessibilityService extends AccessibilityService {
             }
         };
         servicePrefs.registerOnSharedPreferenceChangeListener(prefListener);
-        if (servicePrefs.getBoolean("custom_app_refresh", false)) postWaitingNotification();
         checkAndRestartService();
     }
     @Override
@@ -139,12 +132,10 @@ public class KeepAliveAccessibilityService extends AccessibilityService {
             lastRealPkg = basePkg;
             String effectivePkg = resolveEffectivePkg(prefs, basePkg);
             boolean enabled = prefs.getBoolean("app_refresh_enabled_" + effectivePkg, false);
+            if (!enabled) return;
             String setRes = prefs.getString("app_refresh_res_" + effectivePkg, "");
             int setHz = prefs.getInt("app_refresh_hz_" + effectivePkg, -1);
-            int[] cur = getCurrentWHRate();
-            String curRes = cur[0] > 0 ? (cur[0] + "×" + cur[1]) : "?";
-            int curHz = cur[2];
-            postCustomNotification(basePkg, enabled, setRes, setHz, curRes, curHz);
+            postCustomToast(basePkg, setRes, setHz);
         } catch (Exception e) {
             Log.e(TAG, "updatePersistentNotification: " + e.getMessage());
         }
@@ -169,26 +160,18 @@ public class KeepAliveAccessibilityService extends AccessibilityService {
         } catch (Exception ignored) {}
         return "";
     }
-    private int[] getCurrentWHRate() {
+    private void postCustomToast(String pkg, String setRes, int setHz) {
         try {
-            android.hardware.display.DisplayManager dm =
-                    (android.hardware.display.DisplayManager) getSystemService(DISPLAY_SERVICE);
-            android.view.Display d = dm.getDisplay(android.view.Display.DEFAULT_DISPLAY);
-            android.view.Display.Mode m = d.getMode();
-            return new int[]{ m.getPhysicalWidth(), m.getPhysicalHeight(), Math.round(d.getRefreshRate()) };
-        } catch (Exception e) { return new int[]{0, 0, 0}; }
-    }
-    private void createCustomChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Context lc = getLocalizedCtx();
+            String appLabel = pkg;
             try {
-                Context lc = getLocalizedCtx();
-                NotificationChannel ch = new NotificationChannel(
-                        CUSTOM_CHANNEL_ID,
-                        lc.getString(R.string.custom_notif_channel_name),
-                        NotificationManager.IMPORTANCE_LOW);
-                NotificationManager nm = getSystemService(NotificationManager.class);
-                if (nm != null) nm.createNotificationChannel(ch);
+                android.content.pm.PackageManager pm = getPackageManager();
+                appLabel = pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString();
             } catch (Exception ignored) {}
+            String msg = lc.getString(R.string.custom_notif_toast_format, appLabel, setRes, setHz);
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Log.e(TAG, "postCustomToast: " + e.getMessage());
         }
     }
     private Context getLocalizedCtx() {
@@ -201,84 +184,11 @@ public class KeepAliveAccessibilityService extends AccessibilityService {
             return createConfigurationContext(config);
         } catch (Exception e) { return this; }
     }
-    private void postCustomNotification(String pkg, boolean enabled, String setRes, int setHz,
-                                        String curRes, int curHz) {
-        try {
-            Context lc = getLocalizedCtx();
-            String appLabel = pkg;
-            try {
-                android.content.pm.PackageManager pm = getPackageManager();
-                appLabel = pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString();
-            } catch (Exception ignored) {}
-            Intent openIntent = new Intent(this, com.pmahz.MainActivity.class);
-            openIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            int of = PendingIntent.FLAG_UPDATE_CURRENT;
-            if (Build.VERSION.SDK_INT >= 31) of |= PendingIntent.FLAG_IMMUTABLE;
-            PendingIntent openPi = PendingIntent.getActivity(this, 3, openIntent, of);
-            Intent stopIntent = new Intent(this, CustomRefreshActionReceiver.class);
-            stopIntent.setAction("STOP_CUSTOM_REFRESH");
-            int sf = PendingIntent.FLAG_UPDATE_CURRENT;
-            if (Build.VERSION.SDK_INT >= 31) sf |= PendingIntent.FLAG_IMMUTABLE;
-            PendingIntent stopPi = PendingIntent.getBroadcast(this, 4, stopIntent, sf);
-            String statusLine = enabled
-                    ? lc.getString(R.string.custom_notif_status_on)
-                    : lc.getString(R.string.custom_notif_status_off);
-            String curLine = lc.getString(R.string.custom_notif_current_format, curRes, curHz);
-            String title = appLabel + "  " + statusLine;
-            StringBuilder big = new StringBuilder();
-            if (enabled && setRes != null && !setRes.isEmpty() && setHz > 0) {
-                big.append(lc.getString(R.string.custom_notif_set_format, setRes, setHz)).append("\n");
-            }
-            big.append(curLine);
-            Notification n = new NotificationCompat.Builder(this, CUSTOM_CHANNEL_ID)
-                    .setContentTitle(title)
-                    .setContentText(curLine)
-                    .setStyle(new NotificationCompat.BigTextStyle().bigText(big.toString()).setBigContentTitle(title))
-                    .setSmallIcon(R.drawable.ic_launcher_foreground)
-                    .setContentIntent(openPi)
-                    .addAction(android.R.drawable.ic_media_pause, lc.getString(R.string.custom_notif_stop), stopPi)
-                    .setOngoing(true)
-                    .setOnlyAlertOnce(true)
-                    .build();
-            NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-            if (nm != null) nm.notify(CUSTOM_NOTIF_ID, n);
-        } catch (Exception e) {
-            Log.e(TAG, "postCustomNotification: " + e.getMessage());
-        }
-    }
     private void cancelCustomNotification() {
         try {
             lastAppliedConfig = "";
             NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             if (nm != null) nm.cancel(CUSTOM_NOTIF_ID);
-        } catch (Exception ignored) {}
-    }
-    private void postWaitingNotification() {
-        try {
-            Context lc = getLocalizedCtx();
-            Intent openIntent = new Intent(this, com.pmahz.MainActivity.class);
-            openIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            int of = PendingIntent.FLAG_UPDATE_CURRENT;
-            if (Build.VERSION.SDK_INT >= 31) of |= PendingIntent.FLAG_IMMUTABLE;
-            PendingIntent openPi = PendingIntent.getActivity(this, 3, openIntent, of);
-            Intent stopIntent = new Intent(this, CustomRefreshActionReceiver.class);
-            stopIntent.setAction("STOP_CUSTOM_REFRESH");
-            int sf = PendingIntent.FLAG_UPDATE_CURRENT;
-            if (Build.VERSION.SDK_INT >= 31) sf |= PendingIntent.FLAG_IMMUTABLE;
-            PendingIntent stopPi = PendingIntent.getBroadcast(this, 4, stopIntent, sf);
-            String title = lc.getString(R.string.custom_notif_waiting_title);
-            String text = lc.getString(R.string.custom_notif_waiting_text);
-            Notification n = new NotificationCompat.Builder(this, CUSTOM_CHANNEL_ID)
-                    .setContentTitle(title)
-                    .setContentText(text)
-                    .setSmallIcon(R.drawable.ic_launcher_foreground)
-                    .setContentIntent(openPi)
-                    .addAction(android.R.drawable.ic_media_pause, lc.getString(R.string.custom_notif_stop), stopPi)
-                    .setOngoing(true)
-                    .setOnlyAlertOnce(true)
-                    .build();
-            NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-            if (nm != null) nm.notify(CUSTOM_NOTIF_ID, n);
         } catch (Exception ignored) {}
     }
     private String resolveEffectivePkg(SharedPreferences prefs, String basePkg) {

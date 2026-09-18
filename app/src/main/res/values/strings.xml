@@ -65,7 +65,7 @@
     <string name="language_en">English</string>
     <string name="language_ja">日本語</string>
     <string name="nav_home">主页</string>
-    <string name="nav_custom_app_refresh">自定义应用刷新率</string>
+    <string name="nav_custom_app_refresh">自定义</string>
     <string name="nav_remote">远程刷新率</string>
     <string name="remote_mode_wireless">无线连接</string>
     <string name="remote_mode_usb">USB连接</string>
@@ -169,6 +169,7 @@
     <string name="custom_app_master_required">请先返回开启自定义应用刷新率总开关</string>
     <string name="rate_lock_need_auth">请先在设置里授予 Root 或 Shizuku 权限</string>
     <string name="custom_notif_channel_name">指定应用刷新率</string>
+    <string name="custom_notif_toast_format">已为 %1$s 应用 %2$s @ %3$d Hz</string>
     <string name="custom_notif_stop">停止</string>
     <string name="custom_notif_status_on">[该应用已启用自定义刷新率]</string>
     <string name="custom_notif_status_off">[该应用未启用自定义刷新率]</string>
@@ -185,6 +186,9 @@
     <string name="custom_notif_waiting_title">自定义应用刷新率 · 运行中</string>
     <string name="custom_notif_waiting_text">等待切换到已启用的应用…</string>
     <string name="perm_status_title">权限授权状态</string>
+    <string name="accessibility_running_label">无障碍运行</string>
+    <string name="contrib_type_ui">贡献类型: 功能/UI二次优化</string>
+    <string name="contrib_info_yxlanyu">个人信息: 酷安 叶昕蓝yu</string>
     <string name="language_page_title">语言设置</string>
     <string name="lang_system">系统默认</string>
     <string name="lang_zh">简体中文</string>

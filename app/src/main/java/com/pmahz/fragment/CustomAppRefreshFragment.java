@@ -33,7 +33,6 @@ public class CustomAppRefreshFragment extends Fragment implements SharedPreferen
     private TextView titleText;
     private TextView tvOCStatus;
     private TextView tvOCCur;
-    private TextView tvA11yStatus;
     private View ocTargetContainer;
     private Handler overclockHandler;
     private Runnable overclockUpdater;
@@ -46,7 +45,6 @@ public class CustomAppRefreshFragment extends Fragment implements SharedPreferen
         titleText = v.findViewById(R.id.custom_app_refresh_title_text);
         tvOCStatus = v.findViewById(R.id.tv_overclock_status);
         tvOCCur = v.findViewById(R.id.tv_overclock_cur);
-        tvA11yStatus = v.findViewById(R.id.tv_accessibility_status);
         ocTargetContainer = v.findViewById(R.id.ll_oc_target_container);
         llEnabledApps = v.findViewById(R.id.ll_enabled_apps);
         tvEnabledEmpty = v.findViewById(R.id.tv_enabled_empty);
@@ -62,7 +60,6 @@ public class CustomAppRefreshFragment extends Fragment implements SharedPreferen
         });
         setupSwitchesAndTargets(v);
         updateUI();
-        updateAccessibilityStatus();
         updateCurrentDisplayText();
         return v;
     }
@@ -279,17 +276,6 @@ public class CustomAppRefreshFragment extends Fragment implements SharedPreferen
     private boolean isAccessibilityServiceEnabled() {
         return AccessibilityUtils.isKeepAliveServiceEnabled(getContext());
     }
-    private void updateAccessibilityStatus() {
-        if (tvA11yStatus == null) return;
-        if (isAccessibilityServiceEnabled()) {
-            tvA11yStatus.setText(R.string.accessibility_enabled);
-            tvA11yStatus.setTextColor(0xFF2ECC71);
-        } else {
-            tvA11yStatus.setText(R.string.accessibility_disabled);
-            tvA11yStatus.setTextColor(0xFFE74C3C);
-        }
-        updateUI();
-    }
     private void updateUI() {
         if (prefs == null) return;
         float wallpaperAlpha = prefs.getFloat("wallpaper_alpha", 0.3f);
@@ -302,7 +288,6 @@ public class CustomAppRefreshFragment extends Fragment implements SharedPreferen
         if (root instanceof android.view.ViewGroup) applyCustomAlpha((android.view.ViewGroup) root, cardA, textA);
         if (tvOCStatus != null) tvOCStatus.setAlpha(1f);
         if (tvOCCur != null) tvOCCur.setAlpha(1f);
-        if (tvA11yStatus != null) tvA11yStatus.setAlpha(1f);
     }
     private void applyCustomAlpha(android.view.ViewGroup vg, float cardA, float textA) {
         for (int i = 0; i < vg.getChildCount(); i++) {
@@ -310,7 +295,7 @@ public class CustomAppRefreshFragment extends Fragment implements SharedPreferen
             if (c instanceof androidx.cardview.widget.CardView) {
                 c.setAlpha(cardA);
             } else if (c instanceof android.widget.TextView) {
-                if (c != tvOCStatus && c != tvOCCur && c != tvA11yStatus) c.setAlpha(textA);
+                if (c != tvOCStatus && c != tvOCCur) c.setAlpha(textA);
             }
             if (c instanceof android.view.ViewGroup) applyCustomAlpha((android.view.ViewGroup) c, cardA, textA);
         }
@@ -322,7 +307,6 @@ public class CustomAppRefreshFragment extends Fragment implements SharedPreferen
     @Override
     public void onResume() {
         super.onResume();
-        updateAccessibilityStatus();
         updateCurrentDisplayText();
         refreshEnabledList();
         updateUI();
@@ -436,7 +420,6 @@ public class CustomAppRefreshFragment extends Fragment implements SharedPreferen
         titleText = null;
         tvOCStatus = null;
         tvOCCur = null;
-        tvA11yStatus = null;
         ocTargetContainer = null;
         llEnabledApps = null;
         tvEnabledEmpty = null;

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Refresh Rate</string>
     <string name="home_title">Refresh Rate</string>
@@ -65,7 +65,7 @@
     <string name="language_en">English</string>
     <string name="language_ja">日本語</string>
     <string name="nav_home">Home</string>
-    <string name="nav_custom_app_refresh">Custom App Refresh Rate</string>
+    <string name="nav_custom_app_refresh">Custom</string>
     <string name="nav_remote">Remote</string>
     <string name="remote_mode_wireless">Wireless</string>
     <string name="remote_mode_usb">USB</string>
@@ -169,6 +169,7 @@
     <string name="custom_app_master_required">Please go back and turn on the Custom App Refresh Rate master switch first</string>
     <string name="rate_lock_need_auth">Grant Root or Shizuku permission first</string>
     <string name="custom_notif_channel_name">Per-App Refresh Rate</string>
+    <string name="custom_notif_toast_format">Applied %1$s at %2$s @ %3$d Hz</string>
     <string name="custom_notif_stop">Stop</string>
     <string name="custom_notif_status_on">[Custom refresh rate ENABLED]</string>
     <string name="custom_notif_status_off">[Custom refresh rate NOT enabled]</string>
@@ -185,6 +186,9 @@
     <string name="custom_notif_waiting_title">Per-app refresh rate · Running</string>
     <string name="custom_notif_waiting_text">Waiting to switch to an enabled app…</string>
     <string name="perm_status_title">Permission status</string>
+    <string name="accessibility_running_label">Accessibility running</string>
+    <string name="contrib_type_ui">Contribution: Feature/UI redesign</string>
+    <string name="contrib_info_yxlanyu">Profile: Coolapk Yxlan-yu</string>
     <string name="language_page_title">Language</string>
     <string name="lang_system">系统默认</string>
     <string name="lang_zh">简体中文</string>

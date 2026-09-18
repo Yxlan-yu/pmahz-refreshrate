@@ -65,7 +65,7 @@
     <string name="language_en">English</string>
     <string name="language_ja">日本語</string>
     <string name="nav_home">ホーム</string>
-    <string name="nav_custom_app_refresh">アプリ別リフレッシュレート</string>
+    <string name="nav_custom_app_refresh">カスタム</string>
     <string name="nav_remote">リモート</string>
     <string name="remote_mode_wireless">無線接続</string>
     <string name="remote_mode_usb">USB接続</string>
@@ -169,6 +169,7 @@
     <string name="custom_app_master_required">先に戻ってアプリ別リフレッシュレートのメインスイッチをオンにしてください</string>
     <string name="rate_lock_need_auth">先に Root または Shizuku 権限を許可してください</string>
     <string name="custom_notif_channel_name">アプリ別リフレッシュレート</string>
+    <string name="custom_notif_toast_format">%1$s に %2$s @ %3$d Hz を適用しました</string>
     <string name="custom_notif_stop">停止</string>
     <string name="custom_notif_status_on">[このアプリは独自リフレッシュレート 有効]</string>
     <string name="custom_notif_status_off">[このアプリは独自リフレッシュレート 未設定]</string>
@@ -185,6 +186,9 @@
     <string name="custom_notif_waiting_title">アプリ別リフレッシュレート · 実行中</string>
     <string name="custom_notif_waiting_text">有効なアプリへの切り替えを待機中…</string>
     <string name="perm_status_title">権限の許可状態</string>
+    <string name="accessibility_running_label">アクセシビリティ実行中</string>
+    <string name="contrib_type_ui">貢献: 機能/UI 二次最適化</string>
+    <string name="contrib_info_yxlanyu">プロフィール: 酷安 叶昕蓝yu</string>
     <string name="language_page_title">言語設定</string>
     <string name="lang_system">系统默认</string>
     <string name="lang_zh">简体中文</string>

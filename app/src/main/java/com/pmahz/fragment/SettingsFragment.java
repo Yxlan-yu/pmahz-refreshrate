@@ -122,6 +122,27 @@ public class SettingsFragment extends Fragment {
                 Toast.makeText(getContext(), R.string.shizuku_install_hint, Toast.LENGTH_LONG).show();
             }
         });
+        View rowAccessibility = v.findViewById(R.id.row_accessibility);
+        if (rowAccessibility != null) {
+            rowAccessibility.setOnClickListener(view -> {
+                try {
+                    startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+                } catch (Exception e) {
+                    Toast.makeText(getContext(), R.string.accessibility_open_failed, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+        View btnYxlanyu = v.findViewById(R.id.btn_yxlanyu_link);
+        if (btnYxlanyu != null) {
+            btnYxlanyu.setOnClickListener(view -> {
+                String url = "https://www.coolapk.com/u/1779";
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)).setPackage("com.coolapk.market"));
+                } catch (Exception e) {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                }
+            });
+        }
         switchRoot.setOnCheckedChangeListener((btn, checked) -> {
             if (checked) {
                 switchShizuku.setChecked(false);
