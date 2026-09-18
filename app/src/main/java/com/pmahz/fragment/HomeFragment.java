@@ -126,10 +126,10 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
     private void loadData() {
         new Thread(() -> {
             hasRoot = RootUtils.isRooted();
-            List<DisplayMode> modes;
+            List<DisplayMode> modes = null;
             if (hasRoot) {
-            List<DisplayMode> dumpsysModes = RootUtils.getDisplayModesFromDumpsys();
-            if (dumpsysModes.isEmpty()) hasRoot = false;
+                modes = RootUtils.getDisplayModesFromDumpsys();
+                if (modes.isEmpty()) hasRoot = false;
             }
             List<Object> built = buildSortedList(modes);
             if (getActivity() != null) {
