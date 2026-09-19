@@ -6,8 +6,8 @@ android {
         applicationId "com.pmahz"
         minSdk 24
         targetSdk 34
-        versionCode 1650
-        versionName "1.6.5"
+        versionCode 1651
+        versionName "1.6.8-1"
     }
     signingConfigs {
         debug {
