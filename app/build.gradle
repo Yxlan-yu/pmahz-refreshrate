@@ -24,6 +24,9 @@ android {
         }
     }
     buildTypes {
+
+        implementation 'com.github.QWEA0:liquidglass:v2.0.10'
+        
         debug {
             signingConfig signingConfigs.debug
             minifyEnabled false
